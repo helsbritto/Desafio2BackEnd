@@ -1,0 +1,92 @@
+from datetime import datetime, timedelta
+
+class Autor:
+    def __init__(self, nome):
+        self.nome = nome
+
+class Livro:
+    def __init__(self, titulo, editora, generos):
+        self.titulo = titulo
+        self.editora = editora
+        self.generos = generos
+        self.autores = []
+
+class Genero:
+    def __init__(self, nome):
+        self.nome = nome
+
+class Exemplar:
+    def __init__(self, livro):
+        self.livro = livro
+        self.disponivel = True
+        self.emprestimos = 0
+        self.max_renovacoes = 3
+
+    def emprestar(self):
+        if self.disponivel:
+            self.disponivel = False
+            self.emprestimos += 1
+            return True
+        return False
+
+    def devolver(self):
+        self.disponivel = True
+
+    def renovar(self):
+        if self.emprestimos < self.max_renovacoes:
+            self.emprestimos += 1
+            return True
+        return False
+
+class Usuario:
+    def __init__(self, nome, telefone, nacionalidade):
+        self.nome = nome
+        self.telefone = telefone
+        self.nacionalidade = nacionalidade
+
+class Biblioteca:
+    def __init__(self, nome):
+        self.nome = nome
+        self.usuarios = []
+        self.livros = []
+        self.exemplares = []
+        self.emprestimos = []
+
+    def adicionar_usuario(self, usuario):
+        self.usuarios.append(usuario)
+
+    def adicionar_livro(self, livro):
+        self.livros.append(livro)
+        exemplar = Exemplar(livro)
+        self.exemplares.append(exemplar)
+
+    def realizar_emprestimo(self, usuario, exemplar):
+        if exemplar.emprestar():
+            data_emprestimo = datetime.now()
+            data_devolucao = data_emprestimo + timedelta(days=14)
+            emprestimo = {
+                'usuario': usuario,
+                'exemplar': exemplar,
+                'data_emprestimo': data_emprestimo,
+                'data_devolucao': data_devolucao,
+                'estado': 'emprestado'
+            }
+            self.emprestimos.append(emprestimo)
+            return True
+        return False
+
+    def realizar_devolucao(self, exemplar):
+        for emprestimo in self.emprestimos:
+            if emprestimo['exemplar'] == exemplar and emprestimo['estado'] == 'emprestado':
+                emprestimo['exemplar'].devolver()
+                emprestimo['estado'] = 'devolvido'
+                return True
+        return False
+
+    def realizar_renovacao(self, exemplar):
+        for emprestimo in self.emprestimos:
+            if emprestimo['exemplar'] == exemplar and emprestimo['estado'] == 'emprestado':
+                if exemplar.renovar():
+                    emprestimo['data_devolucao'] += timedelta(days=7)
+                    return True
+        return False
